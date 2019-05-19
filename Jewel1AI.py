@@ -7,11 +7,13 @@ import urllib.request as urllib
 import win32gui
 import time
 import numpy as np
+import pytesseract
 
 class Jewel1AI:
     # Holds the class information about the AI
     def __init__(self):
         self.hwnd = 0
+        #self.net = cv2.dnn.r cv2.dnn.readNet("frozen_east_text_detection.pb")
 
     def getWindowDimensions(self):
         rect = win32gui.GetWindowRect(self.hwnd)
@@ -24,9 +26,36 @@ class Jewel1AI:
     def getWindowShot(self):
         region = self.getWindowDimensions()
         img = pyautogui.screenshot(region=region)
-        return np.array(img) 
+        return np.array(img)
         # Convert RGB to BGR 
-        #open_cv_image = open_cv_image[:, :, ::-1].copy()s
+        #open_cv_image = open_cv_image[:, :, ::-1].copy()
+
+    def handleTitleScreen(self):
+        canPlayNow = False
+        gray = None
+        W = 0
+        H = 0
+        while not canPlayNow:
+            img = self.getWindowShot()
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            endX = int(gray.shape[1] * (67/100))
+            startX = int(gray.shape[1] * (1/4))
+            startY = int(gray.shape[0] * (3/4))
+            endY = int(gray.shape[0] * (7/8))
+            gray = gray[startY:endY, startX:endX]
+            text = pytesseract.image_to_string(gray)
+            for line in text.split("\n"):
+                if line == "CLICK HERE TO PLAY!":
+                    canPlayNow = True
+                    W = gray.shape[1]
+                    H = gray.shape[0]
+                    boxes = pytesseract.image_to_boxes(gray)
+                    break
+        for box in boxes.split("\n"):
+            vals = box.split()
+            print(vals)
+        #print(boxes)
+        #print(type(boxes))
 
     def launchGame(self):
         # Launch Bejeweled 1 and get the window handle.
