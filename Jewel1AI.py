@@ -13,13 +13,17 @@ class Jewel1AI:
     def __init__(self):
         self.hwnd = 0
 
-    def getWindowShot(self):
+    def getWindowDimensions(self):
         rect = win32gui.GetWindowRect(self.hwnd)
         x = rect[0]
         y = rect[1]
         w = rect[2] - x
         h = rect[3] - y
-        img = pyautogui.screenshot(region=(x, y, w, h))
+        return (x, y, w, h)
+
+    def getWindowShot(self):
+        region = self.getWindowDimensions()
+        img = pyautogui.screenshot(region=region)
         return np.array(img) 
         # Convert RGB to BGR 
         #open_cv_image = open_cv_image[:, :, ::-1].copy()s
