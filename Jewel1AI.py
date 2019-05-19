@@ -22,7 +22,7 @@ class Jewel1AI:
         img = pyautogui.screenshot(region=(x, y, w, h))
         return np.array(img) 
         # Convert RGB to BGR 
-        #open_cv_image = open_cv_image[:, :, ::-1].copy()
+        #open_cv_image = open_cv_image[:, :, ::-1].copy()s
 
     def launchGame(self):
         # Launch Bejeweled 1 and get the window handle.
