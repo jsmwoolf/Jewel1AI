@@ -35,6 +35,8 @@ class Jewel1AI:
         gray = None
         W = 0
         H = 0
+        x = 0
+        y = 0
         while not canPlayNow:
             img = self.getWindowShot()
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -47,13 +49,21 @@ class Jewel1AI:
             for line in text.split("\n"):
                 if line == "CLICK HERE TO PLAY!":
                     canPlayNow = True
+                    x = startX
+                    y = startY
                     W = gray.shape[1]
                     H = gray.shape[0]
                     boxes = pytesseract.image_to_boxes(gray)
                     break
-        for box in boxes.split("\n"):
-            vals = box.split()
-            print(vals)
+        region = self.getWindowDimensions()
+        x += region[0]
+        y += region[1]
+        pyautogui.moveTo(x + 108, y + 31)
+        pyautogui.click()
+        #print(x, y, W, H)
+        #for box in boxes.split("\n"):
+        #    vals = box.split()
+        #    print(vals)
         #print(boxes)
         #print(type(boxes))
 
