@@ -30,6 +30,14 @@ class Jewel1AI:
         # Convert RGB to BGR 
         #open_cv_image = open_cv_image[:, :, ::-1].copy()
 
+    def getPlayingFieldCoord(self, img):
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray = cv2.GaussianBlur(gray, (3, 3), 3)
+        canny = cv2.Canny(gray, 50, 100)
+        _, cnts, _ = cv2.findContours(canny, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contour = sorted(cnts, key=cv2.contourArea, reverse=True)[0]
+        return cv2.boundingRect(contour)
+
     def handleTitleScreen(self):
         canPlayNow = False
         gray = None
