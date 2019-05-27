@@ -1,4 +1,4 @@
-# This class holds information about our bot playing Bejeweled 1 game.
+# This class holds information about the Bejeweled 1 game environment.
 # Please note that this code will only support the Windows platform.
 import cv2
 import pyautogui
@@ -9,7 +9,7 @@ import time
 import numpy as np
 import pytesseract
 
-class Jewel1AI:
+class Jewel1Env:
     # Holds the class information about the AI
     def __init__(self):
         self.hwnd = 0
