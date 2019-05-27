@@ -9,11 +9,6 @@ import time
 import numpy as np
 import pytesseract
 
-
-def showImage(title, img):
-    cv2.imshow(title, img)
-    cv2.waitKey(0)
-
 class Jewel1AI:
     # Holds the class information about the AI
     def __init__(self):
@@ -32,8 +27,6 @@ class Jewel1AI:
         region = self.getWindowDimensions()
         img = pyautogui.screenshot(region=region)
         return np.array(img)
-        # Convert RGB to BGR 
-        #open_cv_image = open_cv_image[:, :, ::-1].copy()
 
     def _getPlayingFieldCoord(self, img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -99,7 +92,6 @@ class Jewel1AI:
                 imgSeg = croppedImage[12 + (52*(multipleY-1)):12 + (52*multipleY), 12 + (52*(multipleX-1)):12 + (52*(multipleX))]
                 highestCount = 0
                 theColor = "N/A"
-                showImage("Image", imgSeg)
                 for (lower, higher, color) in zip(lowerLimits, higherLimits, colors):
                     filteredImg = cv2.inRange(imgSeg, lower, higher)
                     uniques, counts = np.unique(filteredImg, return_counts=True)
@@ -108,7 +100,6 @@ class Jewel1AI:
                         highestCount = counts[255]
                         theColor = color
                 matrix[multipleY-1][multipleX-1] = theColor
-
         return matrix
 
     def handleTitleScreen(self):
@@ -141,12 +132,6 @@ class Jewel1AI:
         y += region[1]
         pyautogui.moveTo(x + 108, y + 31)
         pyautogui.click()
-        #print(x, y, W, H)
-        #for box in boxes.split("\n"):
-        #    vals = box.split()
-        #    print(vals)
-        #print(boxes)
-        #print(type(boxes))
 
     def launchGame(self):
         # Launch Bejeweled 1 and get the window handle.
