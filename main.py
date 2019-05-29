@@ -4,14 +4,27 @@ from Jewel1RB import Jewel1RB
 import pytesseract
 import time
 import numpy as np
+import random
 
 def showImage(title, img):
     cv2.imshow(title, img)
     cv2.waitKey(0)
 
-ai = Jewel1AI()
-ai.launchGame()
-ai.handleTitleScreen()
+env = Jewel1Env()
+env.launchGame()
+env.handleTitleScreen()
 time.sleep(2)
-cv2.imwrite("testImage.png", cv2.cvtColor(ai.getWindowShot(), cv2.COLOR_BGR2RGB))
-print(ai.getPlayingFieldInfo(), file=open("SampleBoard.txt", "w"))
+agent = Jewel1RB()
+while True:
+    canMakeMove = False
+    while not canMakeMove:
+        board = env.getPlayingFieldInfo()
+        print(board)
+        canMakeMove = agent.isBoardAvailable(board)
+    moves = agent.processBoard(board)
+    if len(moves) == 0:
+        continue
+    theMove = random.choice(moves)
+    print("Chose move: {}".format(theMove))
+    env.makeMove(int(theMove[1]), int(theMove[3]), theMove[-1])
+    time.sleep(.5)

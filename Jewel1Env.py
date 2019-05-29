@@ -38,6 +38,7 @@ class Jewel1Env:
 
     def getPlayingFieldInfo(self):
         # Responsible for getting the information
+        pyautogui.moveTo(1,1)
         img = self.getWindowShot()
         (x, y, w, h) = self._getPlayingFieldCoord(img)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -101,6 +102,24 @@ class Jewel1Env:
                         theColor = color
                 matrix[multipleY-1][multipleX-1] = theColor
         return matrix
+
+    def makeMove(self, x, y, direction):
+        (winX, winY, winW, winH) = self.getWindowDimensions()
+        img = self.getWindowShot()
+        (areaX, areaY, w, h) = self._getPlayingFieldCoord(img)
+        winX += areaX
+        winY += areaY
+        pyautogui.moveTo(winX + 12 + (52*(x)) + 26, winY+ 12 + (52*(y)) + 26)
+        #pyautogui.click()
+        #time.sleep(.1)
+        if direction == "U":
+            pyautogui.drag(0, -50)
+        elif direction == "D":
+            pyautogui.drag(0, 50)
+        elif direction == "R":
+            pyautogui.drag(50, 0)
+        else:
+            pyautogui.drag(-50, 0)
 
     def handleTitleScreen(self):
         canPlayNow = False
