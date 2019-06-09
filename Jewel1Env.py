@@ -13,6 +13,13 @@ class Jewel1Env:
     # Holds the class information about the AI
     def __init__(self):
         self.hwnd = 0
+        self.moves = 0
+        self.dialog = False
+        # This is only needed for the first move
+        self.x = 0
+        self.y = 0
+        self.w = 0
+        self.h = 0
         #self.net = cv2.dnn.r cv2.dnn.readNet("frozen_east_text_detection.pb")
 
     def getWindowDimensions(self):
@@ -36,12 +43,41 @@ class Jewel1Env:
         contour = sorted(cnts, key=cv2.contourArea, reverse=True)[0]
         return cv2.boundingRect(contour)
 
-    def getPlayingFieldInfo(self):
-        # Responsible for getting the information
-        pyautogui.moveTo(1,1)
+    def _moveDialog(self, img):
+        cropped = img[10:200, 10:300] #cv2.cvtColor(img[10:200, 10:300], cv2.COLOR_BGR2RGB)
+        filteredImg = cv2.inRange(cropped, np.array([56, 67, 154]), np.array([96, 134, 167]))
+        uniques, counts = np.unique(filteredImg, return_counts=True)
+        counts = dict(zip(uniques, counts))
+        if 255 in counts:
+            (winX, winY, winW, winH) = self.getWindowDimensions()
+            (areaX, areaY, w, h) = self._getPlayingFieldCoord(self.getWindowShot())
+            winX += areaX
+            winY += areaY
+            pyautogui.moveTo(winX + 300, winY + 90)
+            pyautogui.drag(0, w, duration=.5)
+            time.sleep(.25)
+
+    def getPlayingField(self):
         img = self.getWindowShot()
         (x, y, w, h) = self._getPlayingFieldCoord(img)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        return img[y:y+h, x:x+w]
+
+    def getPlayingFieldInfo(self):
+        # Responsible for getting the information
+        (x, y, _, _) = self.getWindowDimensions()
+        pyautogui.moveTo(x,y)
+        croppedImage = None
+        if self.moves == 0:
+            img = self.getWindowShot()
+            if self.dialog == False:
+                (self.x, self.y, self.w, self.h) = self._getPlayingFieldCoord(img)
+                self._moveDialog(img[self.y:self.y+self.h, self.x:self.x+self.w])
+                self.dialog = True
+                img = self.getWindowShot()
+            croppedImage = cv2.cvtColor(img[self.y:self.y+self.h, self.x:self.x+self.w],  cv2.COLOR_BGR2RGB)
+        else:
+            croppedImage = self.getPlayingField()
         # The ordering for the limits follows:
         # 1) Red
         # 2) White
@@ -49,8 +85,7 @@ class Jewel1Env:
         # 4) Blue
         # 5) Purple
         # 6) Orange
-        # 7) Green
-        croppedImage = img[y:y+h, x:x+w]
+        # 7) Green 
         colors = [
             "R",
             "W",
@@ -105,13 +140,27 @@ class Jewel1Env:
 
     def makeMove(self, x, y, direction):
         (winX, winY, winW, winH) = self.getWindowDimensions()
-        img = self.getWindowShot()
-        (areaX, areaY, w, h) = self._getPlayingFieldCoord(img)
+        img = None
+        areaX = 0
+        areaY = 0
+        w = 0
+        h = 0
+        while areaX == 0 or areaY == 0:
+            # Sometimes, a mis-fire occurs when trying to grab the field
+            # coordinates.  As a result, we should take a shot as many
+            # times as needed
+            img = self.getWindowShot() 
+            if self.moves == 0:
+                # Only needed once.  Additional moves won't execute
+                (areaX, areaY, w, h) = (self.x, self.y, self.w, self.h)
+            else:
+                (areaX, areaY, w, h) = self._getPlayingFieldCoord(img)
+        self.moves += 1
         winX += areaX
         winY += areaY
-        pyautogui.moveTo(winX + 12 + (52*(x)) + 26, winY+ 12 + (52*(y)) + 26)
-        #pyautogui.click()
-        #time.sleep(.1)
+        moveX = winX + 12 + (52*(x)) + 26
+        moveY = winY+ 12 + (52*(y)) + 26
+        pyautogui.moveTo(moveX,moveY)
         if direction == "U":
             pyautogui.drag(0, -50)
         elif direction == "D":

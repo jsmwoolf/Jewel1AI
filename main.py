@@ -13,11 +13,15 @@ def showImage(title, img):
 env = Jewel1Env()
 env.launchGame()
 env.handleTitleScreen()
-time.sleep(2)
+time.sleep(3)
 agent = Jewel1RB()
+board = ""
+imageNumber = 0
 while True:
     canMakeMove = False
-    while not canMakeMove:
+    previousBoard = "1"
+    while not canMakeMove and previousBoard != board:
+        previousBoard = board
         board = env.getPlayingFieldInfo()
         print(board)
         canMakeMove = agent.isBoardAvailable(board)
@@ -25,6 +29,9 @@ while True:
     if len(moves) == 0:
         continue
     theMove = random.choice(moves)
-    print("Chose move: {}".format(theMove))
+    #cv2.imwrite("moves/{}.png".format(imageNumber), env.getPlayingField())
+    print("Chose move #{}: {}".format(imageNumber,theMove))
+    imageNumber += 1
+    time.sleep(.25)
     env.makeMove(int(theMove[1]), int(theMove[3]), theMove[-1])
-    time.sleep(.5)
+    time.sleep(1)
