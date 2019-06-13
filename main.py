@@ -23,11 +23,11 @@ while True:
     while not canMakeMove and previousBoard != board:
         previousBoard = board
         board = env.getPlayingFieldInfo()
-        print(board)
         canMakeMove = agent.isBoardAvailable(board)
     moves = agent.processBoard(board)
     if len(moves) == 0:
         continue
+    print(agent.getBestMove(board))
     theMove = random.choice(moves)
     #cv2.imwrite("moves/{}.png".format(imageNumber), env.getPlayingField())
     print("Chose move #{}: {}".format(imageNumber,theMove))
