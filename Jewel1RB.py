@@ -1,3 +1,5 @@
+import random
+
 class Jewel1RB:
     def __init__(self):
         pass
@@ -182,5 +184,13 @@ class Jewel1RB:
                 moveType[theType] = [move]
             else:
                 moveType[theType].append(move)
-        return moveType
+        matchOrdering = ["3W", "T", "L", "5M", "4M", "3M"]
+        bestMatch = 'N/A'
+        for match in matchOrdering:
+            if match not in moveType:
+                continue
+            listMoves = moveType[match]
+            bestMatch = random.choice(listMoves)
+            break
+        return bestMatch
         

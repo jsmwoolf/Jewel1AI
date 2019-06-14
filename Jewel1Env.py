@@ -97,7 +97,7 @@ class Jewel1Env:
         ]
         lowerLimits = [
             np.array([0, 0, 128]),
-            np.array([200, 200, 200]), 
+            np.array([145, 145, 145]), 
             np.array([0, 128, 128]),
             np.array([128, 128, 0]),
             np.array([128, 0, 128]),
@@ -106,9 +106,9 @@ class Jewel1Env:
         ]
         higherLimits = [
             np.array([0, 0, 255]),
-            np.array([255, 255, 255]), 
+            np.array([175, 175, 175]), 
             np.array([0, 255, 255]),
-            np.array([255, 255, 0]),
+            np.array([225, 225, 0]),
             np.array([255, 0, 255]),
             np.array([0, 128, 255]),
             np.array([150, 255, 150])
@@ -123,9 +123,10 @@ class Jewel1Env:
             [0,0,0,0,0,0,0,0],
             [0,0,0,0,0,0,0,0]
         ]
+        spacing = 52
         for multipleY in range(1,9):
             for multipleX in range(1,9):
-                imgSeg = croppedImage[12 + (52*(multipleY-1)):12 + (52*multipleY), 12 + (52*(multipleX-1)):12 + (52*(multipleX))]
+                imgSeg = croppedImage[8 + (spacing*(multipleY-1)):8 + (spacing*multipleY), 12 + (spacing*(multipleX-1)):12 + (spacing*(multipleX))]
                 highestCount = 0
                 theColor = "N/A"
                 for (lower, higher, color) in zip(lowerLimits, higherLimits, colors):
@@ -133,6 +134,8 @@ class Jewel1Env:
                     uniques, counts = np.unique(filteredImg, return_counts=True)
                     counts = dict(zip(uniques, counts))
                     if 255 in counts and counts[255] > highestCount:
+                        if counts[255] < 50 and color == "W":
+                            continue
                         highestCount = counts[255]
                         theColor = color
                 matrix[multipleY-1][multipleX-1] = theColor
