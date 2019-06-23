@@ -1,7 +1,6 @@
 import cv2
 from Jewel1Env import Jewel1Env
 from Jewel1RB import Jewel1RB
-import pytesseract
 import time
 import numpy as np
 import random

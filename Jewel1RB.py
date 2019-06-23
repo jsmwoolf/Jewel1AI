@@ -1,4 +1,6 @@
 import random
+import copy
+import pandas as pd
 
 class Jewel1RB:
     def __init__(self):
@@ -68,6 +70,10 @@ class Jewel1RB:
                 if board[x][y] == "N/A":
                     return False
         return True
+    
+    def printBoard(self, board):
+        for y in range(8):
+                print(board[y][:])
 
     def processBoard(self, board):
         moves = []
@@ -169,10 +175,114 @@ class Jewel1RB:
             theType = "3M"
         return theType
         
-            
+    def checkDoubleMove(self, moves):
+        doubles = []
+        for move in moves:
+            x = int(move[1])
+            y = int(move[3])
+            d = move[-1]
+            if d == "R":
+                x += 1
+                d = "L"
+            elif d == "L":
+                x -= 1
+                d = "R"
+            elif d == "U":
+                y -= 1
+                d = "D"
+            else:
+                y += 1
+                d = "U"
+            newPos = "({},{}){}".format(x, y, d)
+            if newPos in moves:
+                doubles.append(move)
+        return doubles
+    
+    def predictAfterMove(self, move, board):
+        d = move[-1]
+        x = int(move[1])
+        y = int(move[3])
+        color = None
+        xRange = []
+        yRange = []
+        if d == "R":
+            color = board[y][x + 1]
+            board[y][x + 1] = board[y][x]
+            board[y][x] = color
+            if x-2 >= 0 and board[y][x-1] == color and board[y][x-2] == color:
+                xRange = [x-2, x-1, x]
+            else:
+                xRange.append(x)
+            yRange.append(y)
+            # Handle vertical range
+            for i in range(1, 3):
+                if y+i < 8 and board[y+i][x] == color and board[(y+i)-1][x] == color:
+                    yRange.append(y+i)
+                if y-i >= 0 and board[y-i][x] == color and board[(y-i)+1][x] == color:
+                    yRange.append(y-i)
+                
+        elif d == "L":
+            color = board[y][x - 1]
+            board[y][x - 1] = board[y][x]
+            board[y][x] = color
+            if x+2 < 8 and board[y][x+1] == color and board[y][x+2] == color:
+                xRange = [x+2, x+1, x]
+            else:
+                xRange.append(x)
+            yRange.append(y)
+            # Handle vertical range
+            for i in range(1, 3):
+                if y+i < 8 and board[y+1][x] == color and board[(y+i)-1][x] == color:
+                    yRange.append(y+i)
+                if y-i >= 0 and board[y-i][x] == color and board[(y-i)+1][x] == color:
+                    yRange.append(y-i)
+
+        elif d == "U":
+            color = board[y - 1][x]
+            board[y-1][x] = board[y][x]
+            board[y][x] = color
+            if y+2 < 8 and board[y+1][x] == color and board[y+2][x] == color:
+                yRange = [y+2, y+1, y]
+            else:
+                yRange.append(y)
+            xRange.append(x)
+            # Handle vertical range
+            for i in range(1, 3):
+                if x+i < 8 and board[y][x+i] == color and board[y][(x+i)-1] == color:
+                    xRange.append(x+i)
+                if x-i >= 0 and board[y][x-i] == color and board[y][(x-i)-1] == color:
+                    xRange.append(x-i)
+        else:
+            color = board[y + 1][x]
+            board[y + 1][x] = board[y][x]
+            board[y][x] = color
+            if y-2 >= 0 and board[y-1][x] == color and board[y-2][x] == color:
+                yRange = [y-2, y-1, y]
+            else:
+                yRange.append(y)
+            xRange.append(x)
+            # Handle vertical range
+            for i in range(1, 3):
+                if x+i < 8 and board[y][x+i] == color and board[y][(x+i)-1] == color:
+                    xRange.append(x+i)
+                if x-i >= 0 and board[y][x-i] == color and board[y][(x-i)-1] == color:
+                    xRange.append(x-i)
+        # Sort the ranges
+        xRange.sort()
+        yRange.sort()
+        for xCol in xRange:
+            space = (yRange[-1] - yRange[0]) + 1
+            curY = yRange[0] - 1
+            while curY >= 0:
+                board[curY + space][xCol] = board[curY][xCol]
+                board[curY][xCol] = 'N/A'
+                curY -= 1
+        return board
+    
     def getBestMove(self, board):
         moves = self.processBoard(board)
-        moveType = {}
+        doubles = self.checkDoubleMove(moves)
+        moveData = {"move": [], "type": [], "double": [], "reaction":[]}
         for move in moves:
             theType = self._getMatchType(
                 board, 
@@ -180,17 +290,35 @@ class Jewel1RB:
                 int(move[3]),
                 move[-1]
             )
-            if theType not in moveType:
-                moveType[theType] = [move]
-            else:
-                moveType[theType].append(move)
+            isDouble = move in doubles
+            afterBoard = self.predictAfterMove(move, copy.deepcopy(board))
+            #self.printBoard(afterBoard)
+            cascadeAmount = 0
+            for x in range(8):
+                for y in range(6):
+                    if afterBoard[y][x] == 'N/A':
+                        continue
+                    if afterBoard[y][x] == afterBoard[y+1][x] and afterBoard[y+1][x] == afterBoard[y+2][x]:
+                        cascadeAmount += 1
+            for y in range(8):
+                for x in range(6):
+                    if afterBoard[y][x] == 'N/A':
+                        continue
+                    if afterBoard[y][x] == afterBoard[y][x+1] and afterBoard[y][x+1] == afterBoard[y][x+2]:
+                        cascadeAmount += 1
+            moveData['move'].append(move)
+            moveData['type'].append(theType)
+            moveData['double'].append(isDouble) 
+            moveData['reaction'].append(cascadeAmount)
         matchOrdering = ["3W", "T", "L", "5M", "4M", "3M"]
-        bestMatch = 'N/A'
-        for match in matchOrdering:
-            if match not in moveType:
-                continue
-            listMoves = moveType[match]
-            bestMatch = random.choice(listMoves)
-            break
-        return bestMatch
+        moveInfo = pd.DataFrame(moveData, columns=["move", "type", "double", "reaction"])
+
+        moveInfo.type = moveInfo.type.astype("category")
+        moveInfo.type.cat.set_categories(matchOrdering, inplace=True)
+
+        moveInfo.sort_values(["type", "double"], ascending=[True, False], inplace=True)
+        print(moveInfo.head(len(moveInfo)))
+        bestMove = moveInfo.head(1).reset_index(drop=True)["move"][0]
+        
+        return bestMove
         
