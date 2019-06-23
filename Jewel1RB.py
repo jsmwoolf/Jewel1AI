@@ -9,7 +9,6 @@ class Jewel1RB:
     def verticalSearch(self, board):
         moves = []
         for x in range(8):
-            occur = 0
             curColor = ""
             for y in range(8):
                 if board[y][x] != curColor:
@@ -38,7 +37,6 @@ class Jewel1RB:
     def horizontalSearch(self, board):
         moves = []
         for y in range(8):
-            occur = 0
             curColor = ""
             for x in range(8):
                 if board[y][x] != curColor:
@@ -202,81 +200,54 @@ class Jewel1RB:
         d = move[-1]
         x = int(move[1])
         y = int(move[3])
-        color = None
-        xRange = []
-        yRange = []
+        spots = []
         if d == "R":
-            color = board[y][x + 1]
+            tmp = board[y][x + 1]
             board[y][x + 1] = board[y][x]
-            board[y][x] = color
-            if x-2 >= 0 and board[y][x-1] == color and board[y][x-2] == color:
-                xRange = [x-2, x-1, x]
-            else:
-                xRange.append(x)
-            yRange.append(y)
-            # Handle vertical range
-            for i in range(1, 3):
-                if y+i < 8 and board[y+i][x] == color and board[(y+i)-1][x] == color:
-                    yRange.append(y+i)
-                if y-i >= 0 and board[y-i][x] == color and board[(y-i)+1][x] == color:
-                    yRange.append(y-i)
-                
+            board[y][x] = tmp
         elif d == "L":
-            color = board[y][x - 1]
+            tmp = board[y][x - 1]
             board[y][x - 1] = board[y][x]
-            board[y][x] = color
-            if x+2 < 8 and board[y][x+1] == color and board[y][x+2] == color:
-                xRange = [x+2, x+1, x]
-            else:
-                xRange.append(x)
-            yRange.append(y)
-            # Handle vertical range
-            for i in range(1, 3):
-                if y+i < 8 and board[y+1][x] == color and board[(y+i)-1][x] == color:
-                    yRange.append(y+i)
-                if y-i >= 0 and board[y-i][x] == color and board[(y-i)+1][x] == color:
-                    yRange.append(y-i)
+            board[y][x] = tmp
 
         elif d == "U":
-            color = board[y - 1][x]
+            tmp = board[y - 1][x]
             board[y-1][x] = board[y][x]
-            board[y][x] = color
-            if y+2 < 8 and board[y+1][x] == color and board[y+2][x] == color:
-                yRange = [y+2, y+1, y]
-            else:
-                yRange.append(y)
-            xRange.append(x)
-            # Handle vertical range
-            for i in range(1, 3):
-                if x+i < 8 and board[y][x+i] == color and board[y][(x+i)-1] == color:
-                    xRange.append(x+i)
-                if x-i >= 0 and board[y][x-i] == color and board[y][(x-i)-1] == color:
-                    xRange.append(x-i)
+            board[y][x] = tmp
         else:
-            color = board[y + 1][x]
+            tmp = board[y + 1][x]
             board[y + 1][x] = board[y][x]
-            board[y][x] = color
-            if y-2 >= 0 and board[y-1][x] == color and board[y-2][x] == color:
-                yRange = [y-2, y-1, y]
-            else:
-                yRange.append(y)
-            xRange.append(x)
-            # Handle vertical range
-            for i in range(1, 3):
-                if x+i < 8 and board[y][x+i] == color and board[y][(x+i)-1] == color:
-                    xRange.append(x+i)
-                if x-i >= 0 and board[y][x-i] == color and board[y][(x-i)-1] == color:
-                    xRange.append(x-i)
-        # Sort the ranges
-        xRange.sort()
-        yRange.sort()
-        for xCol in xRange:
-            space = (yRange[-1] - yRange[0]) + 1
-            curY = yRange[0] - 1
-            while curY >= 0:
-                board[curY + space][xCol] = board[curY][xCol]
-                board[curY][xCol] = 'N/A'
-                curY -= 1
+            board[y][x] = tmp
+        # Get the spots that are now a match
+        # Vertical search
+        for xCur in range(8):
+            for yCur in range(6):
+                if board[yCur][xCur] == board[yCur+1][xCur] and \
+                    board[yCur+1][xCur] == board[yCur+2][xCur]:
+                    if (yCur, xCur) not in spots:
+                        spots.append((yCur, xCur))
+                    if (yCur+1, xCur) not in spots:
+                        spots.append((yCur+1, xCur))
+                    if (yCur+2, xCur) not in spots:
+                        spots.append((yCur+2, xCur))
+        # Horizontal search
+        for yCur in range(8):
+            for xCur in range(6):
+                if board[yCur][xCur] == board[yCur][xCur+1] and \
+                    board[yCur][xCur+1] == board[yCur][xCur+2]:
+                    if (yCur, xCur) not in spots:
+                        spots.append((yCur, xCur))
+                    if (yCur, xCur+1) not in spots:
+                        spots.append((yCur, xCur+1))
+                    if (yCur, xCur+2) not in spots:
+                        spots.append((yCur, xCur+2))
+        # Now that we have the matches, predict after effect.
+        spots.sort()
+        for curY, curX in spots:
+            while curY != 0:
+                board[curY][curX] = board[curY-1][curX]
+                curY -=1
+            board[0][curX] = 'N/A'
         return board
     
     def getBestMove(self, board):
@@ -292,7 +263,7 @@ class Jewel1RB:
             )
             isDouble = move in doubles
             afterBoard = self.predictAfterMove(move, copy.deepcopy(board))
-            #self.printBoard(afterBoard)
+            #
             cascadeAmount = 0
             for x in range(8):
                 for y in range(6):
@@ -316,7 +287,7 @@ class Jewel1RB:
         moveInfo.type = moveInfo.type.astype("category")
         moveInfo.type.cat.set_categories(matchOrdering, inplace=True)
 
-        moveInfo.sort_values(["type", "double"], ascending=[True, False], inplace=True)
+        moveInfo.sort_values(["type", "double", "reaction"], ascending=[True, False, False], inplace=True)
         print(moveInfo.head(len(moveInfo)))
         bestMove = moveInfo.head(1).reset_index(drop=True)["move"][0]
         
